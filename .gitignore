@@ -34,7 +34,7 @@ build/
 *.egg-info/
 
 # 시각화 출력
-*.png
+
 *.jpg
 *.gif
 
