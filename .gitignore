@@ -1,0 +1,47 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.env
+
+# 데이터베이스 파일
+*.db
+*.db-journal
+chroma_db/
+
+# 로그 파일
+*.log
+logs/
+
+# IDE 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 임시 파일
+.DS_Store
+Thumbs.db
+
+# 빌드 파일
+dist/
+build/
+*.egg-info/
+
+# 시각화 출력
+*.png
+*.jpg
+*.gif
+
+# 캐시 디렉토리
+.cache/
+__pycache__/
+
+# 테스트 커버리지
+.coverage
+htmlcov/
