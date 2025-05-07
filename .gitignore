@@ -37,7 +37,7 @@ build/
 
 *.jpg
 *.gif
-
+*.png
 # 캐시 디렉토리
 .cache/
 __pycache__/
