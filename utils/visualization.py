@@ -8,36 +8,45 @@ import numpy as np
 from datetime import datetime
 from typing import Optional, Dict
 import matplotlib.font_manager as fm
-# 한글 폰트 설정
+import os
+
+# 한글 폰트 설정 개선
 def set_korean_font():
-    # 시스템에서 한글 폰트 찾기
+    """
+    시스템에 설치된 한글 폰트를 찾아 설정
+    """
+    # 일반 폰트 설정
+    plt.rcParams['font.family'] = 'sans-serif'
+    
+    # 한글 폰트 목록
     korean_fonts = [
         'NanumGothic',
         'Malgun Gothic',
         'Apple SD Gothic Neo',
         'AppleGothic',
-        'Noto Sans CJK KR'
+        'Noto Sans CJK KR',
+        'Gulim',
+        'Dotum',
+        'Batang'
     ]
     
-    selected_font = None
+    # sans-serif에 한글 폰트 추가
     for font_name in korean_fonts:
         try:
-            font_prop = fm.FontProperties(fname=fm.findfont(font_name))
-            plt.rcParams['font.family'] = font_prop.get_name()
-            selected_font = font_name
-            break
-        except:
+            font_path = fm.findfont(fm.FontProperties(family=font_name))
+            if font_path and not font_path.endswith('DejaVuSans.ttf'):
+                # sans-serif 패밀리에 한글 폰트 추가
+                plt.rcParams['font.sans-serif'] = [font_name] + plt.rcParams.get('font.sans-serif', [])
+                print(f"한글 폰트 설정: {font_name}")
+                break
+        except Exception as e:
+            print(f"폰트 {font_name} 설정 실패: {e}")
             continue
-    
-    if selected_font is None:
-        # 폰트가 없으면 기본 폰트 사용
-        plt.rcParams['font.family'] = 'DejaVu Sans'
     
     # 마이너스 기호 깨짐 방지
     plt.rcParams['axes.unicode_minus'] = False
     
-    return selected_font
-
+    return plt.rcParams['font.sans-serif'][0] if plt.rcParams.get('font.sans-serif') else 'sans-serif'
 
 
 def visualize_association_network(
@@ -46,9 +55,6 @@ def visualize_association_network(
     save_path: Optional[str] = None,
     show: bool = True
 ) -> Optional[str]:
-    # 한글 폰트 설정 - 여기에 추가
-    set_korean_font()
-
     """
     연관 네트워크 시각화
     
@@ -61,8 +67,11 @@ def visualize_association_network(
     Returns:
         저장된 파일 경로 또는 None
     """
+    # 한글 폰트 설정
+    font_name = set_korean_font()
+
     # 피규어 설정
-    plt.figure(figsize=(16, 12))
+    plt.figure(figsize=(16, 12), dpi=100)
     
     # 서브그래프 생성 (중심 개념 기준)
     if center_concept and center_concept in graph:
@@ -121,11 +130,18 @@ def visualize_association_network(
                           arrowsize=20,
                           arrowstyle='->')
     
-    # 노드 라벨 추가
-    nx.draw_networkx_labels(subgraph, pos, 
+    # 노드 라벨 - font_properties 키워드 제거하고 font_family만 사용
+    # 라벨 딕셔너리 직접 생성 (한글 인코딩 처리 위해)
+    labels = {}
+    for node in subgraph.nodes():
+        # 유니코드 문자열로 변환하여 저장
+        labels[node] = str(node)
+    
+    # 라벨 표시 (font_properties 제거)
+    nx.draw_networkx_labels(subgraph, pos, labels=labels,
                            font_size=12, 
                            font_weight='bold',
-                           font_family='sans-serif')
+                           font_family=font_name)  # font_properties 제거
     
     # 엣지 가중치 표시
     edge_labels = {}
@@ -134,7 +150,8 @@ def visualize_association_network(
         if weight > 0.3:  # 강한 연결만 표시
             edge_labels[(u, v)] = f"{weight:.2f}"
     
-    nx.draw_networkx_edge_labels(subgraph, pos, edge_labels, font_size=10)
+    nx.draw_networkx_edge_labels(subgraph, pos, edge_labels, font_size=10, 
+                               font_family=font_name)  # 엣지 라벨도 폰트 지정
     
     # 타이틀 설정
     title = f"연관 네트워크 {center_concept} 중심" if center_concept else "연관 네트워크"
